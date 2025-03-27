@@ -11,6 +11,17 @@ st.set_page_config(
     layout="wide",
 )
 
+# Accessing the secrets
+base_url = st.secrets["BASE_URL"]
+openai_api_key = st.secrets["OPENAI_API_KEY"]
+supabase_url = st.secrets["SUPABASE_URL"]
+supabase_service_key = st.secrets["SUPABASE_SERVICE_KEY"]
+reasoner_model = st.secrets["REASONER_MODEL"]
+primary_model = st.secrets["PRIMARY_MODEL"]
+embedding_api_key = st.secrets["EMBEDDING_API_KEY"]
+embedding_base_url = st.secrets["EMBEDDING_BASE_URL"]
+embedding_model = st.secrets["EMBEDDING_MODEL"]
+
 # Utilities and styles
 from utils.utils import get_clients
 from streamlit_pages.styles import load_css
@@ -98,17 +109,4 @@ async def main():
         st.title("Archon - Environment Configuration")
         environment_tab()
     elif st.session_state.selected_tab == "Agent Service":
-        st.title("Archon - Agent Service")
-        agent_service_tab()
-    elif st.session_state.selected_tab == "Database":
-        st.title("Archon - Database Configuration")
-        database_tab(supabase)
-    elif st.session_state.selected_tab == "Documentation":
-        st.title("Archon - Documentation")
-        documentation_tab(supabase)
-    elif st.session_state.selected_tab == "Future Enhancements":
-        st.title("Archon - Future Enhancements")
-        future_enhancements_tab()
-
-if __name__ == "__main__":
-    asyncio.run(main())
+        st
