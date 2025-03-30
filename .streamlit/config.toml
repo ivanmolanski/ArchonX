@@ -4,3 +4,7 @@ showErrorDetails = "none"
 [theme]
 primaryColor = "#EB2D8C"
 base="dark"
+
+[server]
+# Ignore the iterations directory to prevent hitting inotify watch limits
+folderWatchBlacklist = ["iterations"]
