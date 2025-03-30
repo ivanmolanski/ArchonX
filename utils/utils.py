@@ -3,7 +3,7 @@ from openai import AsyncOpenAI
 from dotenv import load_dotenv
 from datetime import datetime
 from functools import wraps
-from typing import Optional
+from typing import Optional, Any
 import streamlit as st
 import webbrowser
 import importlib
@@ -11,6 +11,14 @@ import inspect
 import json
 import sys
 import os
+
+# Attempt to import streamlit, but don't fail if it's not available (e.g., running outside Streamlit)
+_STREAMLIT_AVAILABLE = False
+try:
+    import streamlit as st
+    _STREAMLIT_AVAILABLE = True
+except ImportError:
+    pass
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -49,8 +57,29 @@ def get_env_var(var_name: str, profile: Optional[str] = None) -> Optional[str]:
     """
     # Path to the JSON file storing environment variables
     env_file_path = os.path.join(workbench_dir, "env_vars.json")
-    
-    # First try to get from JSON file
+
+    # --- Priority 1: Check Streamlit secrets if running in Streamlit ---
+    if _STREAMLIT_AVAILABLE:
+        try:
+            # Streamlit secrets can be nested (e.g., st.secrets.general.MY_KEY)
+            # or flat (st.secrets.MY_KEY). We need to handle both.
+            # Let's assume secrets relevant here might be under a 'general' section
+            # based on streamlit_ui.py, but also check the root.
+            secret_value: Any = None
+            if "general" in st.secrets and var_name in st.secrets.general:
+                 secret_value = st.secrets.general[var_name]
+            elif var_name in st.secrets:
+                 secret_value = st.secrets[var_name]
+
+            if secret_value is not None:
+                 # Ensure we return a string, as secrets can be other types
+                 return str(secret_value)
+        except Exception as e:
+            # Ignore errors if secrets aren't available or structured as expected
+            # write_to_log(f"Info: Could not read '{var_name}' from st.secrets: {e}")
+            pass
+
+    # --- Priority 2: Try to get from JSON file ---
     if os.path.exists(env_file_path):
         try:
             with open(env_file_path, "r") as f:
@@ -70,8 +99,8 @@ def get_env_var(var_name: str, profile: Optional[str] = None) -> Optional[str]:
                     return env_vars[var_name]
         except (json.JSONDecodeError, IOError) as e:
             write_to_log(f"Error reading env_vars.json: {str(e)}")
-    
-    # If not found in JSON, try to get from environment variables
+
+    # --- Priority 3: Try to get from system environment variables ---
     return os.environ.get(var_name)
 
 def save_env_var(var_name: str, value: str, profile: Optional[str] = None) -> bool:
@@ -406,4 +435,4 @@ def get_clients():
             print(f"Failed to initialize Supabase: {e}")
             write_to_log(f"Failed to initialize Supabase: {e}")
 
-    return embedding_client, supabase      
+    return embedding_client, supabase
