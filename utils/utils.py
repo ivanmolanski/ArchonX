@@ -64,12 +64,11 @@ def get_env_var(var_name: str, profile: Optional[str] = None) -> Optional[str]:
             # Streamlit secrets can be nested (e.g., st.secrets.general.MY_KEY)
             # or flat (st.secrets.MY_KEY). We need to handle both.
             # Let's assume secrets relevant here might be under a 'general' section
-            # based on streamlit_ui.py, but also check the root.
+            # based on streamlit_ui.py. We will ONLY check this structure for consistency.
             secret_value: Any = None
             if "general" in st.secrets and var_name in st.secrets.general:
                  secret_value = st.secrets.general[var_name]
-            elif var_name in st.secrets:
-                 secret_value = st.secrets[var_name]
+            # Removed fallback check to root st.secrets to enforce consistency
 
             if secret_value is not None:
                  # Ensure we return a string, as secrets can be other types

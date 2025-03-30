@@ -11,12 +11,13 @@
 -   The UI for managing local environment variables is in `streamlit_pages/environment.py`.
 -   The core issue was identified as a disconnect: `streamlit_ui.py` correctly read from `st.secrets` in the Cloud, but `utils.utils.get_env_var` (used by backend components like `get_clients` and `archon_graph.py`) did *not* check `st.secrets`, only checking a local JSON file or `os.environ`. This meant secrets set in the Cloud UI were not accessible to the backend logic.
 
-**Resolution:**
--   Modified `utils/utils.py`: The `get_env_var` function now prioritizes checking `st.secrets` when running in a Streamlit environment *before* checking the local JSON file or `os.environ`.
+**Resolution Attempt 2:**
+-   Further modified `utils/utils.py`: The `get_env_var` function now *only* checks `st.secrets.general[var_name]` when running in a Streamlit environment. It no longer falls back to checking the root `st.secrets`. This enforces strict consistency with the access pattern used in `streamlit_ui.py`.
 
 **Next Steps:**
-1.  Deploy the updated code to Streamlit Community Cloud.
-2.  Verify that credentials set via the Cloud UI now persist correctly across user sessions (logout/login).
+1.  Ensure secrets in the Streamlit Community Cloud UI are defined under a `[general]` section (e.g., `[general]`, `OPENAI_API_KEY = "sk-..."`).
+2.  Deploy the *latest* updated code to Streamlit Community Cloud.
+3.  Verify that credentials set via the Cloud UI now populate correctly in the Environment tab and persist across user sessions (logout/login).
 
 **Active Decisions:**
--   Implemented fix in `utils/utils.py` to unify configuration access in the Cloud environment.
+-   Refined the fix in `utils/utils.py` to enforce strict consistency in accessing secrets via `st.secrets.general`.
